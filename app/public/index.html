@@ -193,7 +193,7 @@
         </div>
 
         <div style="margin-bottom: 1rem;">
-          <input type="text" id="patient-search-input" data-testid="patient-search-input" placeholder="🔍 Search patient by name, MRN, or complaint..." oninput="searchPatients()">
+          <input type="text" id="patient-search-input" data-testid="patient-search-input" aria-label="Search patient registry by name, MRN, or complaint" placeholder="🔍 Search patient by name, MRN, or complaint..." oninput="searchPatients()">
         </div>
 
         <table class="ehr-table">
@@ -224,6 +224,7 @@
         </p>
 
         <div id="rx-success-receipt" class="badge-routine" style="display: none; width: 100%; margin-bottom: 1.5rem; padding: 1rem;" data-testid="rx-success-receipt"></div>
+        <div id="rx-error-receipt" class="hazard-box" style="display: none; width: 100%; margin-bottom: 1.5rem; padding: 1rem;" data-testid="rx-error-receipt" role="alert"></div>
 
         <form id="rx-form">
           <div class="grid-2">
@@ -274,7 +275,7 @@
         <div class="card telemetry-card">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
             <span style="font-size: 0.85rem; color: var(--text-secondary); text-transform: uppercase;">Lead II Cardiac Monitor</span>
-            <span class="badge-routine" data-testid="telemetry-status-badge">LIVE RHYTHM</span>
+            <span class="badge-routine" id="telemetry-status-badge" data-testid="telemetry-status-badge">LIVE RHYTHM</span>
           </div>
 
           <!-- Animated SVG ECG Line -->
@@ -323,7 +324,7 @@
 
       <div style="margin: 1.25rem 0;">
         <label style="display: flex; align-items: center; gap: 0.75rem; cursor: pointer;">
-          <input type="checkbox" id="override-checkbox" data-testid="override-checkbox" style="width: auto;">
+          <input type="checkbox" id="override-checkbox" data-testid="override-checkbox" aria-label="Acknowledge high-risk drug interaction and confirm clinical override" style="width: auto;">
           <span style="font-size: 0.85rem; font-weight: 600;">I clinically acknowledge this life-threatening risk and authorize physician override.</span>
         </label>
       </div>

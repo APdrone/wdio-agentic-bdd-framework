@@ -2,6 +2,7 @@ import { spawn, execSync } from 'child_process';
 import http from 'http';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { generateDashboard } from './generate-dashboard.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(__dirname, '..');
@@ -12,7 +13,6 @@ console.log('===================================================================
 console.log('⚕️  MEDPULSE EHR — WEBDRIVERIO CUCUMBER TEST RUNNER');
 console.log('================================================================================');
 
-// Free port 4000 if stuck from a prior run
 function freePortWindows(port) {
   if (process.platform !== 'win32') return;
   try {
@@ -99,9 +99,18 @@ async function run() {
 
     wdioProcess.on('close', (code) => {
       cleanup();
+      
+      // Auto-generate executive dashboard
+      try {
+        generateDashboard();
+      } catch (err) {
+        console.error('Error compiling dashboard:', err.message);
+      }
+
       console.log('================================================================================');
       if (code === 0) {
         console.log('🎉 ALL WEBDRIVERIO CUCUMBER BDD TESTS PASSED SUCCESSFULLY (100%)');
+        console.log(`📂 Executive Dashboard: ${path.join(rootDir, 'reports', 'medpulse-e2e-report.html')}`);
       } else {
         console.log(`⚠️  WEBDRIVERIO TESTS COMPLETED WITH EXIT CODE: ${code}`);
       }

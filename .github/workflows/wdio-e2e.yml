@@ -7,6 +7,15 @@ on:
     branches: [ main, master ]
   workflow_dispatch:
 
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: 'pages'
+  cancel-in-progress: false
+
 jobs:
   e2e-testing:
     name: 🧪 Run WebdriverIO Cucumber E2E Tests
@@ -30,14 +39,24 @@ jobs:
         with:
           chrome-version: stable
 
-      - name: 🚀 Execute Turnkey E2E Suite
+      - name: 🚀 Execute Turnkey E2E Suite (7 BDD Specs, Parallel Workers)
         run: npm test
 
-      - name: 📊 Generate Allure HTML Report
+      - name: 📊 Generate Standalone Executive Dashboard & Allure Report
         if: always()
-        run: npm run report:generate || true
+        run: |
+          npm run report:html || true
+          npm run report:generate || true
 
-      - name: 📈 Upload Allure Test Report
+      - name: 📑 Upload Executive HTML Dashboard
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: medpulse-executive-dashboard
+          path: reports/medpulse-e2e-report.html
+          retention-days: 30
+
+      - name: 📈 Upload Allure Test Artifacts
         uses: actions/upload-artifact@v4
         if: always()
         with:

@@ -9,14 +9,14 @@
     "start": "node app/server.js",
     "app": "node app/server.js",
     "test": "node scripts/run-e2e.js",
-    "test:local": "wdio run config/wdio.conf.ts",
-    "test:headless": "wdio run config/wdio.headless.conf.ts",
-    "test:smoke": "wdio run config/wdio.headless.conf.ts --cucumberOpts.tags=\"@smoke\"",
-    "test:regression": "wdio run config/wdio.headless.conf.ts --cucumberOpts.tags=\"@regression\"",
-    "test:agent": "wdio run config/wdio.agent.conf.ts",
+    "test:smoke": "node scripts/run-e2e.js --cucumberOpts.tags=\"@smoke\"",
+    "test:regression": "node scripts/run-e2e.js --cucumberOpts.tags=\"@regression\"",
+    "test:a11y": "node scripts/run-e2e.js --spec features/06_resilience_and_a11y.feature",
+    "test:agent": "node scripts/run-e2e.js --spec features/05_agentic_ai_triage.feature",
     "agent:debug": "wdio run config/wdio.conf.ts --debug=agent",
-    "report:generate": "allure generate allure-results --clean -o allure-report",
-    "report:open": "allure open allure-report"
+    "report": "node -e \"const { exec } = require('child_process'); exec('start reports/medpulse-e2e-report.html')\"",
+    "report:html": "node scripts/generate-dashboard.js",
+    "report:allure": "allure generate allure-results --clean -o allure-report && allure open allure-report"
   },
   "devDependencies": {
     "@types/node": "^22.10.2",

@@ -39,6 +39,48 @@ class PrescriptionPage extends Page {
     await (await this.confirmOverrideBtn).waitForClickable({ timeout: 3000 });
     await (await this.confirmOverrideBtn).click();
   }
+
+  public async orderPrescription(patientId: string, med: string, dosage: string, frequency: string = 'BID'): Promise<void> {
+    const sel = await this.patientSelect;
+    await sel.waitForDisplayed({ timeout: 5000 });
+    await browser.waitUntil(async () => (await sel.$$('option')).length > 1, { timeout: 5000 });
+    const options = await sel.$$('option');
+    for (const opt of options) {
+      const val = await opt.getAttribute('value');
+      if (val && val.includes(patientId)) {
+        await sel.selectByAttribute('value', val);
+        break;
+      }
+    }
+
+    const medSel = await this.medicationSelect;
+    const medOpts = await medSel.$$('option');
+    for (const opt of medOpts) {
+      const val = await opt.getAttribute('value');
+      if (val && (val === med || val.includes(med))) {
+        await medSel.selectByAttribute('value', val);
+        break;
+      }
+    }
+
+    await this.waitAndSetValue(await this.dosageInput, dosage);
+
+    const freqSel = await this.frequencySelect;
+    const freqOpts = await freqSel.$$('option');
+    for (const opt of freqOpts) {
+      const val = await opt.getAttribute('value');
+      if (val && (val === frequency || val.includes(frequency))) {
+        await freqSel.selectByAttribute('value', val);
+        break;
+      }
+    }
+
+    await this.waitAndClick(await this.submitBtn);
+  }
+
+  public async submitOrder(): Promise<void> {
+    await this.waitAndClick(await this.submitBtn);
+  }
 }
 
 export default new PrescriptionPage();

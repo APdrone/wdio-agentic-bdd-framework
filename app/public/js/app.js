@@ -241,6 +241,9 @@ document.getElementById('rx-form').addEventListener('submit', async (e) => {
 
 async function transmitRx(rxData, override) {
   const payload = Object.assign({}, rxData, { confirmedOverride: override });
+  const errorReceipt = document.getElementById('rx-error-receipt');
+  const successReceipt = document.getElementById('rx-success-receipt');
+  if (errorReceipt) errorReceipt.style.display = 'none';
 
   try {
     const res = await fetch('/api/prescriptions', {
@@ -248,6 +251,14 @@ async function transmitRx(rxData, override) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
     });
+
+    if (!res.ok && res.status !== 409) {
+      if (errorReceipt) {
+        errorReceipt.textContent = '⚠️ Gateway Intercept: Pharmacy Dispatch Service Offline (HTTP ' + res.status + '). Please retry.';
+        errorReceipt.style.display = 'block';
+      }
+      return;
+    }
 
     const data = await res.json();
 
@@ -262,14 +273,19 @@ async function transmitRx(rxData, override) {
 
     if (res.ok) {
       closeHazardModal();
-      const receipt = document.getElementById('rx-success-receipt');
-      receipt.textContent = `✅ Prescription ${data.prescription.rxId} authorized for ${data.prescription.patientName}: ${data.prescription.medication} ${data.prescription.dosage} (${data.prescription.frequency})`;
-      receipt.style.display = 'block';
-      setTimeout(() => { receipt.style.display = 'none'; }, 6000);
+      if (successReceipt) {
+        successReceipt.textContent = `✅ Prescription ${data.prescription.rxId} authorized for ${data.prescription.patientName}: ${data.prescription.medication} ${data.prescription.dosage} (${data.prescription.frequency})`;
+        successReceipt.style.display = 'block';
+        setTimeout(() => { successReceipt.style.display = 'none'; }, 6000);
+      }
       loadPatients();
     }
   } catch (err) {
     console.error('Rx order error:', err);
+    if (errorReceipt) {
+      errorReceipt.textContent = '⚠️ Network Fault: Unable to reach pharmacy gateway. Connection failed.';
+      errorReceipt.style.display = 'block';
+    }
   }
 }
 
@@ -295,15 +311,37 @@ document.getElementById('theme-toggle-btn').addEventListener('click', () => {
   document.body.setAttribute('data-theme', next);
 });
 
-// Telemetry Poller
+// Telemetry Poller with Fault Interception
+window.__simulateTelemetryFault = false;
+
 setInterval(async () => {
   const view = document.getElementById('view-telemetry');
   if (view && view.classList.contains('active')) {
+    const badge = document.getElementById('telemetry-status-badge');
+    if (window.__simulateTelemetryFault) {
+      if (badge) {
+        badge.className = 'badge-urgent';
+        badge.textContent = '🟡 TELEMETRY OFFLINE: RECONNECTING...';
+      }
+      return;
+    }
+
     try {
       const res = await fetch('/api/telemetry');
+      if (!res.ok) throw new Error('Telemetry Gateway Error');
       const data = await res.json();
+      if (badge) {
+        badge.className = 'badge-routine';
+        badge.textContent = '🟢 LIVE RHYTHM';
+      }
       document.getElementById('telemetry-hr-val').innerHTML = data.telemetry.heartRate + ' <span style="font-size: 1rem; color: var(--text-secondary);">BPM</span>';
       document.getElementById('telemetry-spo2-val').innerHTML = data.telemetry.spo2 + ' <span style="font-size: 1rem; color: var(--text-secondary);">%</span>';
-    } catch (e) {}
+    } catch (e) {
+      if (badge) {
+        badge.className = 'badge-urgent';
+        badge.textContent = '🟡 TELEMETRY OFFLINE: RECONNECTING...';
+      }
+    }
   }
-}, 2000);
+}, 1000);
+
