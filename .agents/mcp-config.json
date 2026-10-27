@@ -1,0 +1,16 @@
+{
+  "mcpServers": {
+    "webdriverio": {
+      "command": "npx",
+      "args": [
+        "@wdio/mcp"
+      ],
+      "description": "Official WebdriverIO Model Context Protocol server enabling AI agents to drive browser automation, inspect DOM accessibility trees, and execute verified actions.",
+      "capabilities": {
+        "tools": true,
+        "resources": true,
+        "prompts": true
+      }
+    }
+  }
+}

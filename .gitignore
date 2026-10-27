@@ -1,0 +1,21 @@
+# Dependencies
+node_modules/
+package-lock.json
+
+# Environment & Logs
+.env
+.env.local
+*.log
+npm-debug.log*
+
+# Test Reports & Artifacts
+allure-results/
+allure-report/
+reports/*.json
+reports/*.html
+
+# OS & Editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

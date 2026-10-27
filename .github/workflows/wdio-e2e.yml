@@ -1,0 +1,46 @@
+name: ⚕️ MedPulse WebdriverIO E2E & BDD Pipeline
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  e2e-testing:
+    name: 🧪 Run WebdriverIO Cucumber E2E Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: 🟢 Setup Node.js 20.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: 📦 Install Dependencies
+        run: npm ci
+
+      - name: 🌐 Setup Google Chrome
+        uses: browser-actions/setup-chrome@v1
+        with:
+          chrome-version: stable
+
+      - name: 🚀 Execute Turnkey E2E Suite
+        run: npm test
+
+      - name: 📊 Generate Allure HTML Report
+        if: always()
+        run: npm run report:generate || true
+
+      - name: 📈 Upload Allure Test Report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: allure-e2e-report
+          path: allure-report/
+          retention-days: 14

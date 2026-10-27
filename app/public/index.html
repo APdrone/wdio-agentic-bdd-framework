@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MedPulse EHR — Clinical Triage & Telehealth Operations Hub</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body data-theme="dark">
+
+  <!-- Application Header -->
+  <header>
+    <div class="brand">
+      <span class="brand-icon">⚕</span>
+      <div>
+        <div class="brand-title">MedPulse EHR</div>
+        <div style="font-size: 0.75rem; color: var(--text-secondary);">Clinical Triage & Telehealth Operations</div>
+      </div>
+      <span class="brand-badge">SYSTEM HEALTHY</span>
+    </div>
+
+    <div class="header-controls">
+      <div id="user-display" class="user-profile" style="display: none;">
+        <div>
+          <strong id="display-user-name" data-testid="active-user-name">Elena Rostova, RN</strong>
+          <span id="display-user-role" class="role-pill" data-testid="active-user-role">Triage Nurse</span>
+        </div>
+        <button id="logout-btn" class="btn-outline" data-testid="logout-btn">Sign Out</button>
+      </div>
+      <button id="theme-toggle-btn" class="btn-outline" data-testid="theme-toggle-btn">🌓</button>
+    </div>
+  </header>
+
+  <!-- Navigation Tab Bar -->
+  <nav id="app-nav" class="tab-bar" style="display: none;">
+    <button class="tab-btn active" data-tab="triage-wizard" data-testid="nav-triage-wizard">
+      <span>🩺</span> Acute Triage Intake
+    </button>
+    <button class="tab-btn" data-tab="patient-registry" data-testid="nav-patient-registry">
+      <span>📋</span> EHR Patient Registry
+    </button>
+    <button class="tab-btn" data-tab="prescriptions" data-testid="nav-prescriptions">
+      <span>💊</span> Clinical Rx Orders
+    </button>
+    <button class="tab-btn" data-tab="telemetry" data-testid="nav-telemetry">
+      <span>📈</span> ICU Cardiac Telemetry
+    </button>
+  </nav>
+
+  <!-- Main View Router -->
+  <main>
+    <!-- LOGIN VIEW -->
+    <div id="view-login" class="view-section active">
+      <div class="card auth-container">
+        <h2 style="margin-bottom: 0.5rem; font-size: 1.5rem;">Clinical Authentication</h2>
+        <p style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 1.5rem;">
+          Enter your institutional credentials or select a simulated clinical persona to begin.
+        </p>
+
+        <div id="login-error" class="hazard-box" style="display: none;" data-testid="login-error"></div>
+
+        <form id="login-form">
+          <div class="form-group">
+            <label for="login-email">Clinical Email</label>
+            <input type="email" id="login-email" data-testid="login-email" placeholder="nurse.elena@medpulse.io" required>
+          </div>
+          <div class="form-group">
+            <label for="login-password">Security Password</label>
+            <input type="password" id="login-password" data-testid="login-password" placeholder="••••••••" required>
+          </div>
+          <button type="submit" class="btn-primary" style="width: 100%; margin-top: 0.5rem;" data-testid="login-submit-btn">
+            Authenticate & Launch Portal
+          </button>
+        </form>
+
+        <div style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--border-color);">
+          <div style="font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 0.5rem; text-transform: uppercase;">
+            Quick Fill Personas:
+          </div>
+          <div style="display: flex; gap: 0.5rem;">
+            <button class="btn-outline" style="font-size: 0.75rem; flex: 1;" onclick="fillPersona('nurse')" data-testid="quick-persona-nurse">
+              👩‍⚕️ Triage Nurse
+            </button>
+            <button class="btn-outline" style="font-size: 0.75rem; flex: 1;" onclick="fillPersona('doctor')" data-testid="quick-persona-doctor">
+              👨‍⚕️ Cardiologist
+            </button>
+            <button class="btn-outline" style="font-size: 0.75rem; flex: 1;" onclick="fillPersona('pharma')" data-testid="quick-persona-pharma">
+              💊 Pharmacist
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- VIEW: ACUTE TRIAGE INTAKE WIZARD -->
+    <div id="view-triage-wizard" class="view-section">
+      <div class="card">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem;">
+          <div>
+            <h2 style="font-size: 1.4rem;">Patient Triage & Vital Signs Intake</h2>
+            <p style="color: var(--text-secondary); font-size: 0.85rem;">
+              Emergency Department clinical scoring engine with automated acuity risk classification.
+            </p>
+          </div>
+          <div id="live-risk-evaluator">
+            <span id="triage-risk-badge" class="badge-routine" data-testid="triage-risk-badge">
+              🟢 CODE GREEN: ROUTINE
+            </span>
+          </div>
+        </div>
+
+        <div id="triage-success-banner" class="badge-routine" style="display: none; width: 100%; margin-bottom: 1rem; padding: 0.85rem;" data-testid="triage-success-banner">
+          ✅ Patient successfully admitted to registry with assigned bed.
+        </div>
+
+        <form id="triage-form">
+          <h3 style="font-size: 1rem; margin-bottom: 1rem; color: var(--accent-cyan);">1. Patient Demographics</h3>
+          <div class="grid-2">
+            <div class="form-group">
+              <label for="triage-patient-name">Patient Full Name</label>
+              <input type="text" id="triage-patient-name" data-testid="triage-patient-name" placeholder="e.g. Samuel Green" required>
+            </div>
+            <div class="form-group">
+              <label for="triage-patient-age">Age</label>
+              <input type="number" id="triage-patient-age" data-testid="triage-patient-age" placeholder="52" min="1" max="120" required>
+            </div>
+          </div>
+
+          <div class="grid-2">
+            <div class="form-group">
+              <label for="triage-patient-gender">Gender</label>
+              <select id="triage-patient-gender" data-testid="triage-patient-gender">
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+                <option value="Other">Other / Non-Binary</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="triage-patient-complaint">Chief Clinical Complaint</label>
+              <input type="text" id="triage-patient-complaint" data-testid="triage-patient-complaint" placeholder="e.g. Severe retrosternal pain, diaphoretic" required>
+            </div>
+          </div>
+
+          <h3 style="font-size: 1rem; margin: 1.5rem 0 1rem 0; color: var(--accent-cyan);">2. Vital Signs Entry & Acuity Calculator</h3>
+          <div class="grid-4">
+            <div class="form-group">
+              <label for="triage-systolic">Systolic BP (mmHg)</label>
+              <input type="number" id="triage-systolic" data-testid="triage-systolic" placeholder="120" value="120" oninput="recalcAcuity()" required>
+            </div>
+            <div class="form-group">
+              <label for="triage-diastolic">Diastolic BP (mmHg)</label>
+              <input type="number" id="triage-diastolic" data-testid="triage-diastolic" placeholder="80" value="80" oninput="recalcAcuity()" required>
+            </div>
+            <div class="form-group">
+              <label for="triage-heartrate">Heart Rate (BPM)</label>
+              <input type="number" id="triage-heartrate" data-testid="triage-heartrate" placeholder="75" value="75" oninput="recalcAcuity()" required>
+            </div>
+            <div class="form-group">
+              <label for="triage-spo2">Oxygen SpO2 (%)</label>
+              <input type="number" id="triage-spo2" data-testid="triage-spo2" placeholder="98" value="98" min="50" max="100" oninput="recalcAcuity()" required>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="triage-notes">Known Allergies / Clinical Notes</label>
+            <input type="text" id="triage-notes" data-testid="triage-notes" placeholder="Penicillin, NSAIDs, etc.">
+          </div>
+
+          <button type="submit" class="btn-primary" style="margin-top: 1rem;" data-testid="triage-submit-btn">
+            Submit Triage Assessment & Assign Bed
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- VIEW: EHR PATIENT REGISTRY -->
+    <div id="view-patient-registry" class="view-section">
+      <div class="card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+          <div>
+            <h2 style="font-size: 1.4rem;">EHR Patient Registry & Census</h2>
+            <p style="color: var(--text-secondary); font-size: 0.85rem;">Active hospitalized inpatient and ER census roster.</p>
+          </div>
+          <div style="display: flex; gap: 0.5rem;">
+            <button class="btn-outline" data-filter="ALL" onclick="filterPatients('ALL')" data-testid="filter-all-btn">All Patients</button>
+            <button class="btn-outline" data-filter="CRITICAL" onclick="filterPatients('CRITICAL')" data-testid="filter-critical-btn" style="color: var(--critical-red);">🔴 Critical</button>
+            <button class="btn-outline" data-filter="URGENT" onclick="filterPatients('URGENT')" data-testid="filter-urgent-btn" style="color: var(--urgent-yellow);">🟡 Urgent</button>
+            <button class="btn-outline" data-filter="ROUTINE" onclick="filterPatients('ROUTINE')" data-testid="filter-routine-btn" style="color: var(--routine-green);">🟢 Routine</button>
+          </div>
+        </div>
+
+        <div style="margin-bottom: 1rem;">
+          <input type="text" id="patient-search-input" data-testid="patient-search-input" placeholder="🔍 Search patient by name, MRN, or complaint..." oninput="searchPatients()">
+        </div>
+
+        <table class="ehr-table">
+          <thead>
+            <tr>
+              <th>MRN</th>
+              <th>Patient Name</th>
+              <th>Age / Sex</th>
+              <th>Chief Complaint</th>
+              <th>Acuity Status</th>
+              <th>Bed</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="patient-table-body" data-testid="patient-table-body">
+            <!-- Populated dynamically via JS -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- VIEW: CLINICAL RX & PHARMACY -->
+    <div id="view-prescriptions" class="view-section">
+      <div class="card">
+        <h2 style="font-size: 1.4rem; margin-bottom: 0.5rem;">Clinical Prescription & Medication Dispensing</h2>
+        <p style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 1.5rem;">
+          Electronic Rx ordering with real-time automated Drug-Drug Contraindication Interceptor.
+        </p>
+
+        <div id="rx-success-receipt" class="badge-routine" style="display: none; width: 100%; margin-bottom: 1.5rem; padding: 1rem;" data-testid="rx-success-receipt"></div>
+
+        <form id="rx-form">
+          <div class="grid-2">
+            <div class="form-group">
+              <label for="rx-patient-select">Target Patient</label>
+              <select id="rx-patient-select" data-testid="rx-patient-select" required>
+                <!-- Populated dynamically -->
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="rx-medication-select">Medication to Prescribe</label>
+              <select id="rx-medication-select" data-testid="rx-medication-select" required>
+                <option value="Aspirin">Aspirin (Antiplatelet / Antipyretic)</option>
+                <option value="Warfarin">Warfarin (Vitamin K Antagonist Anticoagulant)</option>
+                <option value="Amoxicillin">Amoxicillin (Broad-Spectrum Antibiotic)</option>
+                <option value="Lisinopril">Lisinopril (ACE Inhibitor Antihypertensive)</option>
+                <option value="Spironolactone">Spironolactone (Potassium-Sparing Diuretic)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="grid-2">
+            <div class="form-group">
+              <label for="rx-dosage-input">Dosage (mg)</label>
+              <input type="text" id="rx-dosage-input" data-testid="rx-dosage-input" value="81mg" required>
+            </div>
+            <div class="form-group">
+              <label for="rx-frequency-select">Administration Frequency</label>
+              <select id="rx-frequency-select" data-testid="rx-frequency-select">
+                <option value="Once Daily (QD)">Once Daily (QD)</option>
+                <option value="Twice Daily (BID)">Twice Daily (BID)</option>
+                <option value="Every 8 Hours (TID)">Every 8 Hours (TID)</option>
+                <option value="PRN (As Needed)">PRN (As Needed)</option>
+              </select>
+            </div>
+          </div>
+
+          <button type="submit" class="btn-primary" style="margin-top: 0.5rem;" data-testid="rx-submit-btn">
+            Validate & Electronically Order Rx
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- VIEW: ICU CARDIAC TELEMETRY -->
+    <div id="view-telemetry" class="view-section">
+      <div class="grid-2">
+        <div class="card telemetry-card">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+            <span style="font-size: 0.85rem; color: var(--text-secondary); text-transform: uppercase;">Lead II Cardiac Monitor</span>
+            <span class="badge-routine" data-testid="telemetry-status-badge">LIVE RHYTHM</span>
+          </div>
+
+          <!-- Animated SVG ECG Line -->
+          <svg viewBox="0 0 500 120" style="width: 100%; height: 120px; background: rgba(0,0,0,0.5); border-radius: 8px;">
+            <path class="ecg-line" d="M 0,60 L 50,60 L 60,50 L 70,70 L 80,60 L 120,60 L 130,20 L 140,100 L 150,60 L 180,60 L 200,55 L 210,60 L 260,60 L 270,50 L 280,70 L 290,60 L 330,60 L 340,20 L 350,100 L 360,60 L 390,60 L 410,55 L 420,60 L 500,60"/>
+          </svg>
+
+          <div style="display: flex; justify-content: space-between; margin-top: 1.5rem;">
+            <div>
+              <div style="font-size: 0.75rem; color: var(--text-secondary);">HEART RATE</div>
+              <div class="telemetry-val" id="telemetry-hr-val" data-testid="telemetry-hr-val">76 <span style="font-size: 1rem; color: var(--text-secondary);">BPM</span></div>
+            </div>
+            <div>
+              <div style="font-size: 0.75rem; color: var(--text-secondary);">PULSE OX (SpO2)</div>
+              <div class="telemetry-val" id="telemetry-spo2-val" data-testid="telemetry-spo2-val" style="color: var(--accent-blue);">98 <span style="font-size: 1rem; color: var(--text-secondary);">%</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3 style="font-size: 1.1rem; margin-bottom: 1rem;">Clinical Ward Bedside Sensors</h3>
+          <p style="color: var(--text-secondary); font-size: 0.85rem; line-height: 1.6; margin-bottom: 1rem;">
+            Continuous biometric telemetry streaming via WebSocket. Automatically detects ventricular fibrillation, ST-elevation, and desaturation events.
+          </p>
+          <div style="padding: 1rem; background: rgba(0,0,0,0.25); border-radius: 8px; font-family: var(--font-mono); font-size: 0.8rem;">
+            <div>Telemetry Gateway: <span style="color: var(--routine-green);">CONNECTED (ws://localhost:4000/telemetry)</span></div>
+            <div>Packet Latency: <span style="color: var(--accent-cyan);">1.8 ms</span></div>
+            <div>Telemetry Stream Health: <span style="color: var(--routine-green);">100% RELIABLE</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- MODAL: DRUG-DRUG CONTRAINDICATION ALERT -->
+  <div id="drug-interaction-modal" class="modal-overlay" data-testid="drug-interaction-modal">
+    <div class="modal-content">
+      <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem;">
+        <span style="font-size: 2rem;">⚠️</span>
+        <h3 style="color: var(--critical-red); font-size: 1.3rem;">CRITICAL DRUG CONTRAINDICATION</h3>
+      </div>
+
+      <div id="hazard-alert-text" class="hazard-box" data-testid="hazard-alert-text">
+        <!-- Alert text inserted dynamically -->
+      </div>
+
+      <div style="margin: 1.25rem 0;">
+        <label style="display: flex; align-items: center; gap: 0.75rem; cursor: pointer;">
+          <input type="checkbox" id="override-checkbox" data-testid="override-checkbox" style="width: auto;">
+          <span style="font-size: 0.85rem; font-weight: 600;">I clinically acknowledge this life-threatening risk and authorize physician override.</span>
+        </label>
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 0.75rem;">
+        <button id="cancel-override-btn" class="btn-outline" data-testid="cancel-override-btn" onclick="closeHazardModal()">Cancel Order</button>
+        <button id="confirm-override-btn" class="btn-danger" data-testid="confirm-override-btn" onclick="submitOverriddenRx()" disabled>Confirm Clinical Override</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: PATIENT CHART DETAILS -->
+  <div id="patient-chart-modal" class="modal-overlay" data-testid="patient-chart-modal">
+    <div class="modal-content">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.25rem;">
+        <div>
+          <h3 id="modal-patient-name" style="font-size: 1.3rem;" data-testid="modal-patient-name">Patient Name</h3>
+          <span id="modal-patient-mrn" style="font-family: var(--font-mono); color: var(--text-secondary); font-size: 0.8rem;">MRN</span>
+        </div>
+        <button class="btn-outline" onclick="closeChartModal()" data-testid="modal-close-btn">✕</button>
+      </div>
+
+      <div style="background: rgba(0,0,0,0.25); padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
+        <h4 style="font-size: 0.85rem; color: var(--accent-cyan); margin-bottom: 0.5rem;">Recorded Vital Signs</h4>
+        <div id="modal-patient-vitals" style="font-family: var(--font-mono); font-size: 0.85rem;" data-testid="modal-patient-vitals"></div>
+      </div>
+
+      <div style="margin-bottom: 1.25rem;">
+        <h4 style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 0.5rem;">Documented Allergies</h4>
+        <div id="modal-allergies-list" data-testid="modal-allergies-list" style="font-size: 0.9rem;"></div>
+      </div>
+
+      <div>
+        <h4 style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 0.5rem;">Active Medications</h4>
+        <div id="modal-meds-list" data-testid="modal-meds-list" style="font-size: 0.9rem; font-family: var(--font-mono);"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/app.js"></script>
+</body>
+</html>
